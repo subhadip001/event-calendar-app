@@ -57,10 +57,8 @@ export async function POST(request: Request) {
       name: newUser.name,
     });
 
-    // Set cookie
-    setAuthCookie(token);
-
-    return NextResponse.json(
+    // Create response with user data
+    const response = NextResponse.json(
       {
         user: {
           id: newUser.id,
@@ -70,6 +68,19 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
+
+    // Set the auth cookie in the response
+    response.cookies.set({
+      name: "token",
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24, // 24 hours
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },

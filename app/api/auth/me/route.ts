@@ -10,10 +10,12 @@ export async function GET() {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    const userId = session?.id as string;
+
     const { data: user } = await supabase
       .from("users")
       .select("id, email, name")
-      .eq("id", session.id)
+      .eq("id", userId)
       .single();
 
     if (!user) {
