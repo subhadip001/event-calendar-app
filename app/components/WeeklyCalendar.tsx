@@ -29,9 +29,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useEventContext } from "@/contexts/EventContext";
+import toast from "react-hot-toast";
 
 export function WeeklyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
   const {
     ownerEvents,
     createEvent,
@@ -73,6 +75,48 @@ export function WeeklyCalendar() {
     }
   }, [selectedUserId, ownerEvents]);
 
+  useEffect(() => {
+    // Update current time every minute
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const scrollToCurrentTime = () => {
+      if (scrollContainerRef.current) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        // Each hour is 60px in height
+        const hourHeight = 60;
+        const scrollPosition =
+          currentHour * hourHeight + (currentMinute * hourHeight) / 60;
+
+        // Subtract some height to show a bit of the previous hours
+        const offset = 100;
+        const finalScrollPosition = Math.max(0, scrollPosition - offset);
+
+        scrollContainerRef.current.scrollTop = finalScrollPosition;
+      }
+    };
+
+    // Small delay to ensure the container is properly rendered
+    const timer = setTimeout(scrollToCurrentTime, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getCurrentTimePosition = () => {
+    const now = currentTime;
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    // Calculate position based on 24-hour day
+    return ((hours + minutes / 60) / 24) * 100;
+  };
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [openDialog, setOpenDialog] = useState(false);
@@ -87,12 +131,6 @@ export function WeeklyCalendar() {
 
   const previousWeek = () => setCurrentDate(addDays(currentDate, -7));
   const nextWeek = () => setCurrentDate(addDays(currentDate, 7));
-
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 8 * 60;
-    }
-  }, []);
 
   const handleAddEvent = () => {
     setSelectedEvent(null);
@@ -120,34 +158,41 @@ export function WeeklyCalendar() {
     deleteEvent(eventId);
   };
 
-  const handleSubmitEvent = (e: React.FormEvent) => {
+  const handleSubmitEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedEvent) {
       const updatedEvent = {
         ...eventForm,
       };
-      updateEvent({
+      await updateEvent({
         id: selectedEvent.id,
         event: updatedEvent,
       });
+      setShowEventForm(false);
+      setSelectedEvent(null);
+      setTemporaryEvent(null);
+      toast.success("Event updated successfully");
     } else {
       const newEvent = {
         ...eventForm,
       };
-      createEvent(newEvent);
+      await createEvent(newEvent);
+      setShowEventForm(false);
+      setEventForm({
+        name: "",
+        start_datetime: new Date().toISOString(),
+        end_datetime: new Date().toISOString(),
+        tag: EventTagEnum.WORK,
+      });
+      setTemporaryEvent(null);
+      toast.success("Event created successfully");
     }
-    setShowEventForm(false);
   };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    // setEventForm((prev) => ({
-    //   ...prev,
-    //   [name]: name.includes("datetime") ? parseISO(value) : value,
-    // }));
-
     setEventForm({
       ...eventForm,
       [name]: name.includes("datetime") ? parseISO(value) : value,
@@ -299,6 +344,18 @@ export function WeeklyCalendar() {
                       }}
                     />
                   ))}
+                  {/* Current time indicator */}
+                  {isSameDay(day, currentTime) && (
+                    <div
+                      className="absolute w-full flex items-center z-20"
+                      style={{
+                        top: `${getCurrentTimePosition()}%`,
+                      }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <div className="flex-1 h-[2px] bg-blue-500"></div>
+                    </div>
+                  )}
                   {/* Events */}
                   {[
                     ...getEventsForDay(day, viewingEvents),
@@ -455,20 +512,22 @@ export function WeeklyCalendar() {
 
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
-          <div className="flex justify-end gap-3 mr-5">
-            <div
-              onClick={handleEditFromDialog}
-              className="flex items-center gap-2"
-            >
-              <Edit2 className="w-4 h-4" />
+          {!selectedUserId && (
+            <div className="flex justify-end gap-3 mr-5">
+              <div
+                onClick={handleEditFromDialog}
+                className="flex items-center gap-2"
+              >
+                <Edit2 className="w-4 h-4" />
+              </div>
+              <div
+                onClick={handleDeleteFromDialog}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+              </div>
             </div>
-            <div
-              onClick={handleDeleteFromDialog}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-            </div>
-          </div>
+          )}
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold capitalize">
               {selectedEvent?.name}
