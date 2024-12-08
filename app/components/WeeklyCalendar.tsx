@@ -507,19 +507,25 @@ export function WeeklyCalendar() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+      <Dialog
+        open={openDialog}
+        onOpenChange={(open) => {
+          setOpenDialog(open);
+          setSelectedEvent(null);
+        }}
+      >
         <DialogContent>
           {!selectedUserId && (
             <div className="flex justify-end gap-3 mr-5">
               <div
                 onClick={handleEditFromDialog}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer"
               >
                 <Edit2 className="w-4 h-4" />
               </div>
               <div
                 onClick={handleDeleteFromDialog}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
               </div>
