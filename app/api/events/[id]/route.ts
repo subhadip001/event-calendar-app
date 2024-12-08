@@ -8,16 +8,17 @@ import { getSession } from "@/lib/auth";
 // GET - Fetch single event
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
     const userId = session?.id as string;
+    const id = (await params).id;
 
     const { data, error } = await supabase
       .from("events")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("user_id", userId)
       .single();
 
@@ -41,26 +42,21 @@ export async function GET(
 // PATCH - Update event
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get current user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const session = await getSession();
+    const userId = session?.id as string;
     const updateData: UpdateEventInput = await request.json();
+    const id = (await params).id;
 
     // First check if the event exists and belongs to the user
     const { data: existingEvent, error: fetchError } = await supabase
       .from("events")
       .select("*")
-      .eq("id", params.id)
-      .eq("user_id", user.id)
+      .eq("id", id)
+      .eq("user_id", userId)
       .single();
 
     if (fetchError || !existingEvent) {
@@ -70,8 +66,8 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("events")
       .update(updateData)
-      .eq("id", params.id)
-      .eq("user_id", user.id)
+      .eq("id", id)
+      .eq("user_id", userId)
       .select()
       .single();
 
@@ -101,23 +97,19 @@ export async function PATCH(
 // DELETE - Delete event
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get current user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const session = await getSession();
+    const userId = session?.id as string;
+    const id = (await params).id;
 
     const { error } = await supabase
       .from("events")
       .delete()
-      .eq("id", params.id)
-      .eq("user_id", user.id);
+      .eq("id", id)
+      .eq("user_id", userId);
 
     if (error) {
       throw error;

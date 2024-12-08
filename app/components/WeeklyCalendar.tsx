@@ -20,7 +20,15 @@ import { useEvents } from "@/hooks/useEvents";
 
 export function WeeklyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { events, createEvent } = useEvents();
+  const {
+    events,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useEvents();
   const [loading, setLoading] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showEventForm, setShowEventForm] = useState(false);
@@ -33,7 +41,7 @@ export function WeeklyCalendar() {
     tag: EventTagEnum.WORK,
   });
 
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Start from Monday
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // Start from Monday
   const weekDays = [...Array(7)].map((_, index) => addDays(weekStart, index));
 
   const hours = [...Array(24)].map((_, index) => index);
@@ -130,9 +138,14 @@ export function WeeklyCalendar() {
   const handleSubmitEvent = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedEvent) {
-      // Edit existing event
+      const updatedEvent = {
+        ...eventForm,
+      };
+      updateEvent({
+        id: selectedEvent.id,
+        event: updatedEvent,
+      });
     } else {
-      // Add new event
       const newEvent = {
         ...eventForm,
       };

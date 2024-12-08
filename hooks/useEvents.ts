@@ -49,7 +49,7 @@ export function useEvents() {
       event: UpdateEventInput;
     }) => {
       const response = await fetch(`/api/events/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },

@@ -1,3 +1,4 @@
+import { Toaster } from "react-hot-toast";
 import ClientLayout from "../components/common/ClientLayout";
 
 export default function MainLayout({
@@ -5,5 +6,10 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <ClientLayout>{children}</ClientLayout>;
+  return (
+    <ClientLayout>
+      {children}
+      <Toaster position="top-center" />
+    </ClientLayout>
+  );
 }
