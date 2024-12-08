@@ -264,9 +264,7 @@ export function WeeklyCalendar() {
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
-        <span className="text-xl">
-          Week of {format(weekStart, "MMM d, yyyy")}
-        </span>
+        <span className="text-xl">{format(weekStart, "MMMM, yyyy")}</span>
       </div>
 
       {/* Total Calendar Grid Boxes */}
