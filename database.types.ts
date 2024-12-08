@@ -1,6 +1,50 @@
 export type Database = {
   public: {
     Tables: {
+      events: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          end_datetime: string;
+          id: string;
+          name: string;
+          start_datetime: string;
+          tag: Database["public"]["Enums"]["event_tag"];
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          description?: string | null;
+          end_datetime: string;
+          id?: string;
+          name: string;
+          start_datetime: string;
+          tag?: Database["public"]["Enums"]["event_tag"];
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          description?: string | null;
+          end_datetime?: string;
+          id?: string;
+          name?: string;
+          start_datetime?: string;
+          tag?: Database["public"]["Enums"]["event_tag"];
+          updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       users: {
         Row: {
           created_at: string;
@@ -33,7 +77,7 @@ export type Database = {
       [_ in never]: never;
     };
     Enums: {
-      [_ in never]: never;
+      event_tag: "meeting" | "personal" | "work" | "important" | "other";
     };
     CompositeTypes: {
       [_ in never]: never;

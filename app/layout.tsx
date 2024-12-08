@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext"; // assuming AuthProvider is in auth.tsx
+import { AuthProvider } from "@/contexts/AuthContext";
+import ClientLayout from "./components/common/ClientLayout";
+import QueryProvider from "./providers/QueryProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,7 +31,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
