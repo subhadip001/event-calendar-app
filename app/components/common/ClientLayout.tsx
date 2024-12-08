@@ -9,7 +9,7 @@ interface ClientLayoutProps {
 
 const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   return (
-    <div className="dashboard-layout bg-white w-full flex flex-col h-screen">
+    <div className="dashboard-layout bg-[#F7FAFD] w-full flex flex-col h-screen">
       <main className="flex flex-grow w-full border-t">
         <Sidebar />
         <section className="flex-grow">{children}</section>

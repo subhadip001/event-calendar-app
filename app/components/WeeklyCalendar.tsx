@@ -107,7 +107,6 @@ export function WeeklyCalendar() {
     const now = currentTime;
     const hours = now.getHours();
     const minutes = now.getMinutes();
-    // Calculate position based on 24-hour day
     return ((hours + minutes / 60) / 24) * 100;
   };
 
@@ -239,13 +238,17 @@ export function WeeklyCalendar() {
   };
 
   return (
-    <div className="flex flex-col bg-white h-screen">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-xl font-semibold">
-          Week of {format(weekStart, "MMM d, yyyy")}
-        </h2>
-        <div className="flex gap-2">
+    <div className="flex flex-col h-screen">
+      <div className="flex items-center py-4 gap-2">
+        <div
+          onClick={() => {
+            setCurrentDate(new Date());
+          }}
+          className="flex items-center border border-gray-600 rounded-full px-6 py-2 cursor-pointer hover:bg-gray-100"
+        >
+          <span>Today</span>
+        </div>
+        <div className="flex">
           <button
             onClick={previousWeek}
             className="p-2 hover:bg-gray-100 rounded"
@@ -261,19 +264,22 @@ export function WeeklyCalendar() {
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
+        <span className="text-xl">
+          Week of {format(weekStart, "MMM d, yyyy")}
+        </span>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Total Calendar Grid Boxes */}
+      <div className="flex flex-1 overflow-hidden bg-white mb-5 rounded-2xl">
         <div className="flex-1 overflow-auto" ref={scrollContainerRef}>
           <div className="flex">
-            {/* Time Labels */}
+            {/* Left bar for hours */}
             <div className="w-16 flex-shrink-0 border-r">
-              <div className="h-12 border-b"></div> {/* Header spacer */}
+              <div className="h-24"></div> {/* Header spacer */}
               {hours.map((hour) => (
                 <div
                   key={hour}
-                  className="h-[60px] border-b text-xs text-gray-500 relative"
+                  className="h-[60px] text-xs text-gray-500 relative"
                 >
                   <span className="absolute -top-2 right-2">
                     {format(addHours(startOfDay(currentDate), hour), "ha")}
@@ -286,18 +292,24 @@ export function WeeklyCalendar() {
             {weekDays.map((day) => (
               <div
                 key={day.toString()}
-                className="flex-1 border-r min-w-[120px]"
+                className="flex-1 border-r bg-white min-w-[120px] z-10"
               >
                 {/* Day Header */}
-                <div className="h-12 border-b text-center py-2 sticky top-0 bg-white z-10">
-                  <div className="text-sm font-medium">
-                    {format(day, "EEE")}
-                  </div>
+                <div className="h-24 flex flex-col gap-1 items-center justify-center border-b text-center py-2 sticky top-0 bg-white z-10">
                   <div
-                    className={`text-sm ${
+                    className={`text-xs uppercase ${
                       isSameDay(day, new Date())
                         ? "text-blue-600 font-semibold"
                         : ""
+                    }`}
+                  >
+                    {format(day, "EEE")}
+                  </div>
+                  <div
+                    className={`text-2xl p-5 flex cursor-pointer justify-center items-center h-8 w-8 rounded-full ${
+                      isSameDay(day, new Date())
+                        ? "text-white bg-[#0A52C4]"
+                        : " hover:bg-gray-200 "
                     }`}
                   >
                     {format(day, "d")}
@@ -338,10 +350,10 @@ export function WeeklyCalendar() {
                       }}
                     />
                   ))}
-                  {/* Current time indicator */}
+                  {/* This is the current time line */}
                   {isSameDay(day, currentTime) && (
                     <div
-                      className="absolute w-full flex items-center z-20"
+                      className="absolute w-full flex items-center"
                       style={{
                         top: `${getCurrentTimePosition()}%`,
                       }}
