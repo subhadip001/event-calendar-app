@@ -1,7 +1,11 @@
 "use client";
 
 import { useEvents } from "@/hooks/useEvents";
-import { CreateEventInput, Event, EventTagEnum } from "@/lib/types";
+import {
+  CreateEventInput,
+  Event as CalendarEvent,
+  EventTagEnum,
+} from "@/lib/types";
 import { getEventsForDay, getEventStyle, isMultiDayEvent } from "@/lib/utils";
 import {
   addDays,
@@ -24,11 +28,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useEventContext } from "@/contexts/EventContext";
 
 export function WeeklyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const {
-    events,
+    fetchedEvents,
     createEvent,
     updateEvent,
     deleteEvent,
@@ -36,19 +41,24 @@ export function WeeklyCalendar() {
     isUpdating,
     isDeleting,
   } = useEvents();
+
   const [loading, setLoading] = useState(true);
+  const {
+    storedEvents,
+    setStoredEvents,
+    showEventForm,
+    setShowEventForm,
+    selectedEvent,
+    setSelectedEvent,
+    eventForm,
+    setEventForm,
+  } = useEventContext();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [eventForm, setEventForm] = useState<CreateEventInput>({
-    name: "",
-    description: "",
-    start_datetime: new Date().toISOString(),
-    end_datetime: new Date().toISOString(),
-    tag: EventTagEnum.WORK,
-  });
+
   const [openDialog, setOpenDialog] = useState(false);
-  const [temporaryEvent, setTemporaryEvent] = useState<Event | null>(null);
+  const [temporaryEvent, setTemporaryEvent] = useState<CalendarEvent | null>(
+    null
+  );
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // Start from Monday
   const weekDays = [...Array(7)].map((_, index) => addDays(weekStart, index));
@@ -75,7 +85,7 @@ export function WeeklyCalendar() {
     setShowEventForm(true);
   };
 
-  const handleEditEvent = (event: Event) => {
+  const handleEditEvent = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setEventForm({
       name: event.name,
@@ -113,13 +123,18 @@ export function WeeklyCalendar() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setEventForm((prev) => ({
-      ...prev,
+    // setEventForm((prev) => ({
+    //   ...prev,
+    //   [name]: name.includes("datetime") ? parseISO(value) : value,
+    // }));
+
+    setEventForm({
+      ...eventForm,
       [name]: name.includes("datetime") ? parseISO(value) : value,
-    }));
+    });
   };
 
-  const handleEventClick = (event: Event) => {
+  const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setOpenDialog(true);
   };
@@ -185,13 +200,6 @@ export function WeeklyCalendar() {
             aria-label="Next week"
           >
             <ChevronRight className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleAddEvent}
-            className="p-2 bg-blue-500 text-white rounded flex items-center"
-            aria-label="Add event"
-          >
-            <Plus className="w-5 h-5 mr-1" /> Add Event
           </button>
         </div>
       </div>
@@ -273,7 +281,7 @@ export function WeeklyCalendar() {
                   ))}
                   {/* Events */}
                   {[
-                    ...getEventsForDay(day, events),
+                    ...getEventsForDay(day, fetchedEvents),
                     ...(temporaryEvent &&
                     isSameDay(day, new Date(temporaryEvent.start_datetime))
                       ? [temporaryEvent]

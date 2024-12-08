@@ -1,5 +1,6 @@
 import { Toaster } from "react-hot-toast";
 import ClientLayout from "../components/common/ClientLayout";
+import { EventProvider } from "@/contexts/EventContext";
 
 export default function MainLayout({
   children,
@@ -7,9 +8,11 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClientLayout>
-      {children}
-      <Toaster position="top-center" />
-    </ClientLayout>
+    <EventProvider>
+      <ClientLayout>
+        {children}
+        <Toaster position="top-center" />
+      </ClientLayout>
+    </EventProvider>
   );
 }

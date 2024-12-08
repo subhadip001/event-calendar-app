@@ -11,7 +11,7 @@ const EVENT_QUERY_KEY = "event";
 export function useEvents() {
   const queryClient = useQueryClient();
 
-  const { data: events = [], isLoading } = useQuery<Event[]>({
+  const { data: fetchedEvents = [], isLoading } = useQuery<Event[]>({
     queryKey: [EVENTS_QUERY_KEY],
     queryFn: async () => {
       const response = await fetch("/api/events");
@@ -84,7 +84,7 @@ export function useEvents() {
   });
 
   return {
-    events,
+    fetchedEvents,
     isLoading,
     createEvent: createEventMutation.mutate,
     updateEvent: updateEventMutation.mutate,

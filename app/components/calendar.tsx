@@ -6,13 +6,12 @@ import { WeeklyCalendar } from "./WeeklyCalendar";
 
 export default function Calendar() {
   const { user, loading } = useAuthContext();
-  const { events } = useEvents();
+  const { fetchedEvents } = useEvents();
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  console.log(events);
 
   return (
     <div>
