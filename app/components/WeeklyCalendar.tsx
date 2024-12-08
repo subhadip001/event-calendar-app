@@ -70,12 +70,6 @@ export function WeeklyCalendar() {
   }, [selectedUserId, selectedUserEvents, ownerEvents]);
 
   useEffect(() => {
-    if (!selectedUserId) {
-      setViewingEvents(ownerEvents);
-    }
-  }, [selectedUserId, ownerEvents]);
-
-  useEffect(() => {
     // Update current time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
