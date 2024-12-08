@@ -48,6 +48,7 @@ export function WeeklyCalendar() {
     tag: EventTagEnum.WORK,
   });
   const [openDialog, setOpenDialog] = useState(false);
+  const [temporaryEvent, setTemporaryEvent] = useState<Event | null>(null);
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // Start from Monday
   const weekDays = [...Array(7)].map((_, index) => addDays(weekStart, index));
@@ -158,6 +159,7 @@ export function WeeklyCalendar() {
         tag: EventTagEnum.WORK,
       });
       setSelectedEvent(null);
+      setTemporaryEvent(null);
     }
     setShowEventForm(open);
   };
@@ -248,7 +250,7 @@ export function WeeklyCalendar() {
                         const eventDate = addHours(startOfDay(day), hour);
                         const eventDateTime = addMinutes(eventDate, minutes);
 
-                        setEventForm({
+                        const newEventForm = {
                           name: "",
                           description: "",
                           start_datetime: eventDateTime.toISOString(),
@@ -257,20 +259,37 @@ export function WeeklyCalendar() {
                             1
                           ).toISOString(),
                           tag: EventTagEnum.WORK,
+                        };
+
+                        setEventForm(newEventForm);
+                        setTemporaryEvent({
+                          id: "temp",
+                          ...newEventForm,
+                          name: "No title",
                         });
                         setShowEventForm(true);
                       }}
                     />
                   ))}
                   {/* Events */}
-                  {getEventsForDay(day, events).map((event) => (
+                  {[
+                    ...getEventsForDay(day, events),
+                    ...(temporaryEvent &&
+                    isSameDay(day, new Date(temporaryEvent.start_datetime))
+                      ? [temporaryEvent]
+                      : []),
+                  ].map((event) => (
                     <div
                       key={event.id}
-                      className={`absolute left-1 right-1 rounded p-1 text-xs text-white overflow-hidden ${getEventColor(
+                      className={`absolute left-1 right-1 rounded p-1 text-xs text-white overflow-hidden ${
+                        event.id === "temp" ? "opacity-50" : ""
+                      } ${getEventColor(
                         event.tag
                       )} cursor-pointer hover:opacity-90`}
                       style={getEventStyle(event, day)}
-                      onClick={() => handleEventClick(event)}
+                      onClick={() =>
+                        event.id !== "temp" && handleEventClick(event)
+                      }
                     >
                       <div className="font-semibold">{event.name}</div>
                       <div>
