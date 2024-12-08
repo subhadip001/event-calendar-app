@@ -10,8 +10,10 @@ import {
 } from "react";
 
 type EventContextType = {
-  storedEvents: Event[];
-  setStoredEvents: (events: Event[]) => void;
+  selectedUserId: string | null;
+  setSelectedUserId: (userId: string | null) => void;
+  selectedUserEvents: Event[];
+  setSelectedUserEvents: (events: Event[]) => void;
   showEventForm: boolean;
   setShowEventForm: (show: boolean) => void;
   selectedEvent: Event | null;
@@ -21,8 +23,10 @@ type EventContextType = {
 };
 
 const EventContext = createContext<EventContextType>({
-  storedEvents: [],
-  setStoredEvents: () => {},
+  selectedUserId: null,
+  setSelectedUserId: () => {},
+  selectedUserEvents: [],
+  setSelectedUserEvents: () => {},
   showEventForm: false,
   setShowEventForm: () => {},
   selectedEvent: null,
@@ -38,7 +42,8 @@ const EventContext = createContext<EventContextType>({
 });
 
 export function EventProvider({ children }: { children: ReactNode }) {
-  const [storedEvents, setStoredEvents] = useState<Event[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserEvents, setSelectedUserEvents] = useState<Event[]>([]);
   const [showEventForm, setShowEventForm] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [eventForm, setEventForm] = useState<CreateEventInput>({
@@ -52,8 +57,10 @@ export function EventProvider({ children }: { children: ReactNode }) {
   return (
     <EventContext.Provider
       value={{
-        storedEvents,
-        setStoredEvents,
+        selectedUserId,
+        setSelectedUserId,
+        selectedUserEvents,
+        setSelectedUserEvents,
         showEventForm,
         setShowEventForm,
         selectedEvent,

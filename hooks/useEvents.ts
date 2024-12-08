@@ -11,7 +11,7 @@ const EVENT_QUERY_KEY = "event";
 export function useEvents() {
   const queryClient = useQueryClient();
 
-  const { data: fetchedEvents = [], isLoading } = useQuery<Event[]>({
+  const { data: ownerEvents = [], isLoading } = useQuery<Event[]>({
     queryKey: [EVENTS_QUERY_KEY],
     queryFn: async () => {
       const response = await fetch("/api/events");
@@ -21,6 +21,24 @@ export function useEvents() {
       return response.json();
     },
   });
+
+  const fetchUserById = async (userId: string) => {
+    const response = await fetch(`/api/eventsByUserId/${userId}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch user");
+    }
+    return response.json();
+  };
+
+  const useFetchedSearchedUserEvents = (userId: string) => {
+    return useQuery({
+      queryKey: ["searched-user-events", userId],
+      queryFn: () => fetchUserById(userId),
+      // Optional: Configure cache time, stale time, etc.
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      enabled: !!userId, // Only run query if userId exists
+    });
+  };
 
   const createEventMutation = useMutation({
     mutationFn: async (newEvent: CreateEventInput) => {
@@ -84,7 +102,7 @@ export function useEvents() {
   });
 
   return {
-    fetchedEvents,
+    ownerEvents,
     isLoading,
     createEvent: createEventMutation.mutate,
     updateEvent: updateEventMutation.mutate,
@@ -92,5 +110,6 @@ export function useEvents() {
     isCreating: createEventMutation.isPending,
     isUpdating: updateEventMutation.isPending,
     isDeleting: deleteEventMutation.isPending,
+    useFetchedSearchedUserEvents,
   };
 }

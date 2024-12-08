@@ -63,6 +63,7 @@ export const isMultiDayEvent = (event: Event) => {
 };
 
 export const getEventsForDay = (day: Date, events: Event[]) => {
+  console.log("events", events);
   return events.filter(
     (event) =>
       isSameDay(new Date(event.start_datetime), day) ||

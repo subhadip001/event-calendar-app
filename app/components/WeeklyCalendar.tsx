@@ -18,7 +18,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ import { useEventContext } from "@/contexts/EventContext";
 export function WeeklyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const {
-    fetchedEvents,
+    ownerEvents,
     createEvent,
     updateEvent,
     deleteEvent,
@@ -42,10 +42,15 @@ export function WeeklyCalendar() {
     isDeleting,
   } = useEvents();
 
+  const [viewingEvents, setViewingEvents] =
+    useState<CalendarEvent[]>(ownerEvents);
+
   const [loading, setLoading] = useState(true);
   const {
-    storedEvents,
-    setStoredEvents,
+    selectedUserId,
+    setSelectedUserId,
+    selectedUserEvents,
+    setSelectedUserEvents,
     showEventForm,
     setShowEventForm,
     selectedEvent,
@@ -53,6 +58,21 @@ export function WeeklyCalendar() {
     eventForm,
     setEventForm,
   } = useEventContext();
+
+  useEffect(() => {
+    if (selectedUserId && selectedUserEvents.length > 0) {
+      setViewingEvents(selectedUserEvents);
+    } else {
+      setViewingEvents(ownerEvents);
+    }
+  }, [selectedUserId, selectedUserEvents, ownerEvents]);
+
+  useEffect(() => {
+    if (!selectedUserId) {
+      setViewingEvents(ownerEvents);
+    }
+  }, [selectedUserId, ownerEvents]);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [openDialog, setOpenDialog] = useState(false);
@@ -281,7 +301,7 @@ export function WeeklyCalendar() {
                   ))}
                   {/* Events */}
                   {[
-                    ...getEventsForDay(day, fetchedEvents),
+                    ...getEventsForDay(day, viewingEvents),
                     ...(temporaryEvent &&
                     isSameDay(day, new Date(temporaryEvent.start_datetime))
                       ? [temporaryEvent]
