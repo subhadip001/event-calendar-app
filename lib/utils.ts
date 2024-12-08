@@ -1,4 +1,5 @@
-import { Event } from "./types";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import {
   format,
   startOfWeek,
@@ -12,6 +13,11 @@ import {
   isBefore,
   parseISO,
 } from "date-fns";
+import { Event } from "./types";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export const getEventStyle = (event: Event, day: Date) => {
   const eventStart = new Date(event.start_datetime);
@@ -47,4 +53,21 @@ export const getEventColor = (tag: string) => {
     other: "bg-gray-500",
   };
   return colors[tag] || colors.other;
+};
+
+export const isMultiDayEvent = (event: Event) => {
+  return !isSameDay(
+    new Date(event.start_datetime),
+    new Date(event.end_datetime)
+  );
+};
+
+export const getEventsForDay = (day: Date, events: Event[]) => {
+  return events.filter(
+    (event) =>
+      isSameDay(new Date(event.start_datetime), day) ||
+      isSameDay(new Date(event.end_datetime), day) ||
+      (isAfter(day, new Date(event.start_datetime)) &&
+        isBefore(day, new Date(event.end_datetime)))
+  );
 };

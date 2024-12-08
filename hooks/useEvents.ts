@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Database } from "@/database.types";
 import { CreateEventInput, Event, UpdateEventInput } from "@/lib/types";
+import toast from "react-hot-toast";
 
 const EVENTS_QUERY_KEY = "events";
 const EVENT_QUERY_KEY = "event";
@@ -37,6 +38,7 @@ export function useEvents() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
+      toast.success("Event created successfully");
     },
   });
 
@@ -61,6 +63,7 @@ export function useEvents() {
       return response.json();
     },
     onSuccess: () => {
+      toast.success("Event updated successfully");
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
     },
   });
@@ -75,6 +78,7 @@ export function useEvents() {
       }
     },
     onSuccess: () => {
+      toast.success("Event deleted successfully");
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
     },
   });

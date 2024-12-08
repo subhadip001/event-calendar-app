@@ -1,22 +1,29 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useEvents } from "@/hooks/useEvents";
+import { CreateEventInput, Event, EventTagEnum } from "@/lib/types";
+import { getEventsForDay, getEventStyle, isMultiDayEvent } from "@/lib/utils";
 import {
-  format,
-  startOfWeek,
   addDays,
   addHours,
-  startOfDay,
-  endOfDay,
+  addMinutes,
+  format,
   isSameDay,
-  differenceInMinutes,
-  isAfter,
-  isBefore,
   parseISO,
+  startOfDay,
+  startOfWeek,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Edit2, Trash2 } from "lucide-react";
-import { CreateEventInput, Event, EventTagEnum } from "@/lib/types";
-import { useEvents } from "@/hooks/useEvents";
+import { ChevronLeft, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export function WeeklyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -40,47 +47,12 @@ export function WeeklyCalendar() {
     end_datetime: new Date().toISOString(),
     tag: EventTagEnum.WORK,
   });
+  const [openDialog, setOpenDialog] = useState(false);
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // Start from Monday
   const weekDays = [...Array(7)].map((_, index) => addDays(weekStart, index));
 
   const hours = [...Array(24)].map((_, index) => index);
-
-  const getEventStyle = (event: Event, day: Date) => {
-    const eventStart = new Date(event.start_datetime);
-    const eventEnd = new Date(event.end_datetime);
-    const dayStart = startOfDay(day);
-    const dayEnd = endOfDay(day);
-
-    let start = eventStart;
-    let end = eventEnd;
-
-    if (isBefore(start, dayStart)) {
-      start = dayStart;
-    }
-    if (isAfter(end, dayEnd)) {
-      end = dayEnd;
-    }
-
-    const topPosition = (differenceInMinutes(start, dayStart) / 60) * 60;
-    const height = (differenceInMinutes(end, start) / 60) * 60;
-
-    return {
-      top: `${topPosition}px`,
-      height: `${height}px`,
-    };
-  };
-
-  const getEventColor = (tag: string) => {
-    const colors: { [key: string]: string } = {
-      work: "bg-blue-500",
-      meeting: "bg-green-500",
-      personal: "bg-purple-500",
-      important: "bg-red-500",
-      other: "bg-gray-500",
-    };
-    return colors[tag] || colors.other;
-  };
 
   const previousWeek = () => setCurrentDate(addDays(currentDate, -7));
   const nextWeek = () => setCurrentDate(addDays(currentDate, 7));
@@ -90,24 +62,6 @@ export function WeeklyCalendar() {
       scrollContainerRef.current.scrollTop = 8 * 60;
     }
   }, []);
-
-  const isMultiDayEvent = (event: Event) => {
-    return !isSameDay(
-      new Date(event.start_datetime),
-      new Date(event.end_datetime)
-    );
-  };
-
-  // Filter events for a specific day
-  const getEventsForDay = (day: Date, events: Event[]) => {
-    return events.filter(
-      (event) =>
-        isSameDay(new Date(event.start_datetime), day) ||
-        isSameDay(new Date(event.end_datetime), day) ||
-        (isAfter(day, new Date(event.start_datetime)) &&
-          isBefore(day, new Date(event.end_datetime)))
-    );
-  };
 
   const handleAddEvent = () => {
     setSelectedEvent(null);
@@ -132,7 +86,7 @@ export function WeeklyCalendar() {
   };
 
   const handleRemoveEvent = (eventId: string) => {
-    //
+    deleteEvent(eventId);
   };
 
   const handleSubmitEvent = (e: React.FormEvent) => {
@@ -162,6 +116,50 @@ export function WeeklyCalendar() {
       ...prev,
       [name]: name.includes("datetime") ? parseISO(value) : value,
     }));
+  };
+
+  const handleEventClick = (event: Event) => {
+    setSelectedEvent(event);
+    setOpenDialog(true);
+  };
+
+  const handleEditFromDialog = () => {
+    if (selectedEvent) {
+      handleEditEvent(selectedEvent);
+      setOpenDialog(false);
+    }
+  };
+
+  const handleDeleteFromDialog = () => {
+    if (selectedEvent) {
+      handleRemoveEvent(selectedEvent.id);
+      setOpenDialog(false);
+    }
+  };
+
+  const getEventColor = (tag: string) => {
+    const colors: { [key: string]: string } = {
+      work: "bg-blue-500",
+      meeting: "bg-green-500",
+      personal: "bg-purple-500",
+      important: "bg-red-500",
+      other: "bg-gray-500",
+    };
+    return colors[tag] || colors.other;
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      setEventForm({
+        name: "",
+        description: "",
+        start_datetime: new Date().toISOString(),
+        end_datetime: addHours(new Date(), 1).toISOString(),
+        tag: EventTagEnum.WORK,
+      });
+      setSelectedEvent(null);
+    }
+    setShowEventForm(open);
   };
 
   return (
@@ -243,17 +241,36 @@ export function WeeklyCalendar() {
                     <div
                       key={hour}
                       className="h-[60px] border-b border-gray-200"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const clickY = e.clientY - rect.top;
+                        const minutes = Math.floor((clickY / rect.height) * 60);
+                        const eventDate = addHours(startOfDay(day), hour);
+                        const eventDateTime = addMinutes(eventDate, minutes);
+
+                        setEventForm({
+                          name: "",
+                          description: "",
+                          start_datetime: eventDateTime.toISOString(),
+                          end_datetime: addHours(
+                            eventDateTime,
+                            1
+                          ).toISOString(),
+                          tag: EventTagEnum.WORK,
+                        });
+                        setShowEventForm(true);
+                      }}
                     />
                   ))}
-
                   {/* Events */}
                   {getEventsForDay(day, events).map((event) => (
                     <div
                       key={event.id}
                       className={`absolute left-1 right-1 rounded p-1 text-xs text-white overflow-hidden ${getEventColor(
                         event.tag
-                      )}`}
+                      )} cursor-pointer hover:opacity-90`}
                       style={getEventStyle(event, day)}
+                      onClick={() => handleEventClick(event)}
                     >
                       <div className="font-semibold">{event.name}</div>
                       <div>
@@ -276,22 +293,6 @@ export function WeeklyCalendar() {
                           </>
                         )}
                       </div>
-                      <div className="absolute top-1 right-1 flex gap-1">
-                        <button
-                          onClick={() => handleEditEvent(event)}
-                          className="p-1 bg-white bg-opacity-20 rounded hover:bg-opacity-30"
-                          aria-label="Edit event"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => handleRemoveEvent(event.id)}
-                          className="p-1 bg-white bg-opacity-20 rounded hover:bg-opacity-30"
-                          aria-label="Remove event"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -301,17 +302,19 @@ export function WeeklyCalendar() {
         </div>
       </div>
 
-      {showEventForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h3 className="text-xl font-semibold mb-4">
+      <Dialog open={showEventForm} onOpenChange={handleDialogOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
               {selectedEvent ? "Edit Event" : "Add New Event"}
-            </h3>
-            <form onSubmit={handleSubmitEvent}>
-              <div className="mb-4">
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmitEvent}>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-gray-700"
                 >
                   Event Name
                 </label>
@@ -322,13 +325,13 @@ export function WeeklyCalendar() {
                   value={eventForm.name}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="mb-4">
+              <div className="space-y-2">
                 <label
                   htmlFor="start_datetime"
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-gray-700"
                 >
                   Start Date & Time
                 </label>
@@ -336,16 +339,19 @@ export function WeeklyCalendar() {
                   type="datetime-local"
                   id="start_datetime"
                   name="start_datetime"
-                  value={format(eventForm.start_datetime, "yyyy-MM-dd'T'HH:mm")}
+                  value={format(
+                    new Date(eventForm.start_datetime),
+                    "yyyy-MM-dd'T'HH:mm"
+                  )}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="mb-4">
+              <div className="space-y-2">
                 <label
                   htmlFor="end_datetime"
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-gray-700"
                 >
                   End Date & Time
                 </label>
@@ -353,16 +359,19 @@ export function WeeklyCalendar() {
                   type="datetime-local"
                   id="end_datetime"
                   name="end_datetime"
-                  value={format(eventForm.end_datetime, "yyyy-MM-dd'T'HH:mm")}
+                  value={format(
+                    new Date(eventForm.end_datetime),
+                    "yyyy-MM-dd'T'HH:mm"
+                  )}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="mb-4">
+              <div className="space-y-2">
                 <label
                   htmlFor="tag"
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-gray-700"
                 >
                   Tag
                 </label>
@@ -371,7 +380,7 @@ export function WeeklyCalendar() {
                   name="tag"
                   value={eventForm.tag}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="work">Work</option>
                   <option value="meeting">Meeting</option>
@@ -380,25 +389,70 @@ export function WeeklyCalendar() {
                   <option value="other">Other</option>
                 </select>
               </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowEventForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {selectedEvent ? "Update" : "Add"} Event
-                </button>
-              </div>
-            </form>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEventForm(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">
+                {selectedEvent ? "Update" : "Create"} Event
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent>
+          <div className="flex justify-end gap-3 mr-5">
+            <div
+              onClick={handleEditFromDialog}
+              className="flex items-center gap-2"
+            >
+              <Edit2 className="w-4 h-4" />
+            </div>
+            <div
+              onClick={handleDeleteFromDialog}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+            </div>
           </div>
-        </div>
-      )}
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold capitalize">
+              {selectedEvent?.name}
+            </DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-2">
+            <div>
+              <span className="font-medium">Time:</span>{" "}
+              {selectedEvent &&
+                `${format(
+                  new Date(selectedEvent.start_datetime),
+                  "MMM d, h:mm a"
+                )} - ${format(
+                  new Date(selectedEvent.end_datetime),
+                  "MMM d, h:mm a"
+                )}`}
+            </div>
+            <div>
+              <span className="font-medium">Type:</span> {selectedEvent?.tag}
+            </div>
+            {selectedEvent?.description && (
+              <div>
+                <span className="font-medium">Description:</span>{" "}
+                {selectedEvent.description}
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex justify-end space-x-2"></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
