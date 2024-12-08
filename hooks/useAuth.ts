@@ -12,7 +12,7 @@ interface AuthData {
 
 export function useAuth() {
   const router = useRouter();
-  const { user } = useAuthContext();
+  const { user, setUser } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +33,12 @@ export function useAuth() {
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to sign up");
+      }
+
+      if (response.ok) {
+        setUser(data.user);
+      } else {
+        setUser(null);
       }
 
       router.push("/");
@@ -62,6 +68,12 @@ export function useAuth() {
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to log in");
+      }
+
+      if (response.ok) {
+        setUser(data.user);
+      } else {
+        setUser(null);
       }
 
       router.push("/");

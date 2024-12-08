@@ -15,8 +15,10 @@
   font-family: 'Outfit', 'Poppins', sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
+}
 
-
+body {
+  overflow: hidden;
 }
 
 @layer base {

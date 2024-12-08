@@ -55,13 +55,13 @@ export async function POST(request: Request) {
 
     // Set the auth cookie in the response
     response.cookies.set({
-      name: 'token',
+      name: "token",
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 // 24 hours
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24, // 24 hours
     });
 
     return response;

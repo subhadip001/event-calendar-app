@@ -47,7 +47,6 @@ export function WeeklyCalendar() {
   const [viewingEvents, setViewingEvents] =
     useState<CalendarEvent[]>(ownerEvents);
 
-  const [loading, setLoading] = useState(true);
   const {
     selectedUserId,
     setSelectedUserId,
@@ -67,13 +66,12 @@ export function WeeklyCalendar() {
     } else {
       setViewingEvents(ownerEvents);
     }
-  }, [selectedUserId, selectedUserEvents, ownerEvents]);
+  }, [selectedUserId, selectedUserEvents, ownerEvents.length]);
 
   useEffect(() => {
-    // Update current time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 60000);
 
     return () => clearInterval(timer);
   }, []);
@@ -85,12 +83,10 @@ export function WeeklyCalendar() {
         const currentHour = now.getHours();
         const currentMinute = now.getMinutes();
 
-        // Each hour is 60px in height
         const hourHeight = 60;
         const scrollPosition =
           currentHour * hourHeight + (currentMinute * hourHeight) / 60;
 
-        // Subtract some height to show a bit of the previous hours
         const offset = 100;
         const finalScrollPosition = Math.max(0, scrollPosition - offset);
 
@@ -104,10 +100,18 @@ export function WeeklyCalendar() {
   }, []);
 
   const getCurrentTimePosition = () => {
-    const now = currentTime;
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    return ((hours + minutes / 60) / 24) * 100;
+    try {
+      const now = new Date();
+      const startOfDayTime = startOfDay(now);
+      const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
+
+      const position = (minutesSinceMidnight / (24 * 60)) * 100;
+
+      return Math.min(Math.max(position, 0), 100);
+    } catch (error) {
+      console.error("Error calculating current time position:", error);
+      return 0;
+    }
   };
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -124,17 +128,6 @@ export function WeeklyCalendar() {
 
   const previousWeek = () => setCurrentDate(addDays(currentDate, -7));
   const nextWeek = () => setCurrentDate(addDays(currentDate, 7));
-
-  const handleAddEvent = () => {
-    setSelectedEvent(null);
-    setEventForm({
-      name: "",
-      start_datetime: new Date().toISOString(),
-      end_datetime: new Date().toISOString(),
-      tag: EventTagEnum.WORK,
-    });
-    setShowEventForm(true);
-  };
 
   const handleEditEvent = (event: CalendarEvent) => {
     setSelectedEvent(event);
@@ -356,7 +349,7 @@ export function WeeklyCalendar() {
                         top: `${getCurrentTimePosition()}%`,
                       }}
                     >
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                       <div className="flex-1 h-[2px] bg-blue-500"></div>
                     </div>
                   )}
