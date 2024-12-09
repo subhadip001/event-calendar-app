@@ -1,36 +1,191 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Event Calendar App - API Documentation
 
-## Getting Started
+## Setup Instructions
 
-First, run the development server:
+### Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Next.js
+- Supabase
+- Tailwind CSS
+- TypeScript
+- JWT Authentication
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation Steps
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone https://github.com/subhadip001/event-calendar-app
+   cd event-calendar-app
+   ```
 
-## Learn More
+2. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   pnpm install
+   # or
+   pnpm install
+   # or
+   yarn install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory and add the following:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   JWT_SECRET=your-secret-key
+   ```
 
-## Deploy on Vercel
+4. Create the required tables with required columns in your Supabase database.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Start the development server:
+   ```bash
+   pnpm dev
+   # or
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API Endpoints
+
+### Authentication
+
+#### 1. Sign Up
+
+- **Endpoint:** `POST /api/auth/signup`
+- **Description:** Sign up a new user
+- **Request Body:**
+  ```typescript
+  {
+    name?: string;
+    email: string;
+    password: string;
+  }
+  ```
+- **Response:**
+  - 200: User created successfully
+  - 400: Invalid input
+  - 409: User already exists
+
+#### 2. Sign In
+
+- **Endpoint:** `POST /api/auth/signin`
+- **Description:** Sign in an existing user
+- **Request Body:**
+  ```typescript
+  {
+    email: string;
+    password: string;
+  }
+  ```
+- **Response:**
+  - 200: User signed in successfully
+  - 400: Invalid input
+  - 401: Invalid credentials
+
+#### 3. Sign Out
+
+- **Endpoint:** `POST /api/auth/signout`
+- **Description:** Sign out the current user
+- **Response:**
+  - 200: User signed out successfully
+  - 401: Not authenticated
+
+#### 4. Fetch User
+
+- **Endpoint:** `GET /api/auth/me`
+- **Description:** Fetch the current user's details
+- **Response:**
+  - 200: User details
+  - 401: Not authenticated
+  - 404: User not found
+
+### Events API
+
+#### 1. Create Event
+
+- **Endpoint:** `POST /api/events`
+- **Description:** Create a new event
+- **Request Body:**
+  ```typescript
+  {
+    title: string;
+    description?: string;
+    startDate: Date;
+    endDate?: Date;
+    location?: string;
+    userId: string;
+  }
+  ```
+- **Response:**
+  - 201: Event created successfully
+  - 400: Invalid input
+  - 401: Unauthorized
+
+#### 2. Get Events
+
+- **Endpoint:** `GET /api/events`
+- **Description:** Retrieve events (supports filtering and pagination)
+- **Query Parameters:**
+  - `userId`: Filter events by user
+  - `startDate`: Filter events from a specific date
+  - `endDate`: Filter events up to a specific date
+  - `page`: Pagination page number
+  - `limit`: Number of events per page
+
+#### 3. Get Single Event
+
+- **Endpoint:** `GET /api/events/:id`
+- **Description:** Retrieve a specific event by ID
+- **Response:**
+  - 200: Event details
+  - 404: Event not found
+
+#### 4. Update Event
+
+- **Endpoint:** `PUT /api/events/:id`
+- **Description:** Update an existing event
+- **Request Body:** Same as Create Event
+- **Response:**
+  - 200: Event updated successfully
+  - 400: Invalid input
+  - 401: Unauthorized
+  - 404: Event not found
+
+#### 5. Delete Event
+
+- **Endpoint:** `DELETE /api/events/:id`
+- **Description:** Delete a specific event
+- **Response:**
+  - 200: Event deleted successfully
+  - 401: Unauthorized
+  - 404: Event not found
+
+## Authentication
+
+The API uses NextAuth for authentication. Ensure you have the proper authentication middleware in place when making requests.
+
+## Error Handling
+
+- 400: Bad Request (Invalid input)
+- 401: Unauthorized
+- 404: Resource Not Found
+- 500: Internal Server Error
+
+## Development Notes
+
+- Use TypeScript for type safety
+- Prisma ORM for database interactions
+- NextAuth for authentication
+- Validate and sanitize all input data
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request

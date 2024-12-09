@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-import { supabase } from "@/utils/supabase/supabase";
-import type { TUser } from "@/lib/types";
 import { getSession } from "@/lib/auth";
+import { supabase } from "@/utils/supabase/supabase";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {

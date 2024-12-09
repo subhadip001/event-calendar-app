@@ -1,10 +1,8 @@
-// app/api/events/route.ts
 import { NextResponse } from "next/server";
 import { supabase } from "@/utils/supabase/supabase";
 import type { CreateEventInput, EventFilters } from "@/lib/types";
 import { getSession } from "@/lib/auth";
 
-// GET - List events with optional filters
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -47,10 +45,8 @@ export async function GET(request: Request) {
   }
 }
 
-// POST - Create new event
 export async function POST(request: Request) {
   try {
-    // Get current user
     const session = await getSession();
     const userId = session?.id as string;
 
@@ -63,7 +59,6 @@ export async function POST(request: Request) {
 
     const eventData: CreateEventInput = await request.json();
 
-    // Validate required fields
     if (
       !eventData.name ||
       !eventData.start_datetime ||
@@ -75,8 +70,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // Convert ISO strings to Date objects if they are not already Date objects
 
     const { data, error } = await supabase
       .from("events")
@@ -92,7 +85,6 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      // Handle time slot conflict error
       if (error.code === "23514") {
         return NextResponse.json(
           {

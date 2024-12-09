@@ -1,11 +1,8 @@
-// app/api/events/[id]/route.ts
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import type { UpdateEventInput } from "@/lib/types";
 import { supabase } from "@/utils/supabase/supabase";
-import { getSession } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
-// GET - Fetch single event
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -39,19 +36,16 @@ export async function GET(
   }
 }
 
-// PATCH - Update event
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get current user
     const session = await getSession();
     const userId = session?.id as string;
     const updateData: UpdateEventInput = await request.json();
     const id = (await params).id;
 
-    // First check if the event exists and belongs to the user
     const { data: existingEvent, error: fetchError } = await supabase
       .from("events")
       .select("*")

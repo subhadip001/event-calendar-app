@@ -6,11 +6,6 @@ import QueryProvider from "./providers/QueryProvider";
 export const metadata: Metadata = {
   title: "Event Calender",
   description: "Event Calender",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
 };
 
 export default function RootLayout({
