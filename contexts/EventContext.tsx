@@ -3,10 +3,9 @@
 import { CreateEventInput, Event, EventTagEnum } from "@/lib/types";
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   ReactNode,
+  useContext,
+  useState
 } from "react";
 
 type EventContextType = {

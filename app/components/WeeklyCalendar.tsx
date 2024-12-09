@@ -38,7 +38,6 @@ import {
   Trash2,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 
 export function WeeklyCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());

@@ -1,7 +1,3 @@
-// app/types/event.ts
-
-// export type EventTag = "meeting" | "personal" | "work" | "important" | "other";
-
 export type TUser = {
   id: string;
   name: string;

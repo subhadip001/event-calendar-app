@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { createToken, hashPassword } from "@/lib/auth";
 import { supabase } from "@/utils/supabase/supabase";
-import { hashPassword, createToken, setAuthCookie } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +13,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists
     const { data: existingUser } = await supabase
       .from("users")
       .select()
@@ -27,10 +26,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create user in Supabase
     const { data: newUser, error } = await supabase
       .from("users")
       .insert([
@@ -50,14 +47,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create JWT token
     const token = await createToken({
       id: newUser.id,
       email: newUser.email,
       name: newUser.name,
     });
 
-    // Create response with user data
     const response = NextResponse.json(
       {
         user: {
@@ -69,7 +64,6 @@ export async function POST(request: Request) {
       { status: 201 }
     );
 
-    // Set the auth cookie in the response
     response.cookies.set({
       name: "token",
       value: token,
@@ -77,7 +71,7 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: 60 * 60 * 24,
     });
 
     return response;

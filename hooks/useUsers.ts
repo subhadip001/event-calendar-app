@@ -1,9 +1,6 @@
 "use client";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Database } from "@/database.types";
-import { supabase } from "@/utils/supabase/supabase";
-import { toast } from "react-hot-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const USERS_QUERY_KEY = "users";
 

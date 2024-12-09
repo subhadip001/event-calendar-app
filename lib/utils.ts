@@ -5,7 +5,7 @@ import {
   isAfter,
   isBefore,
   isSameDay,
-  startOfDay
+  startOfDay,
 } from "date-fns";
 import { twMerge } from "tailwind-merge";
 import { Event } from "./types";

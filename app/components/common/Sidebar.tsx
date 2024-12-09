@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEvents } from "@/hooks/useEvents";
 import { useUsers } from "@/hooks/useUsers";
 import { EventTagEnum } from "@/lib/types";
-import { LogOut, Plus, Search, X } from "lucide-react";
+import { LogOut, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MdOutlinePeopleAlt } from "react-icons/md";
 

@@ -1,8 +1,6 @@
-// app/hooks/useEvents.ts
 "use client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Database } from "@/database.types";
 import { CreateEventInput, Event, UpdateEventInput } from "@/lib/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const EVENTS_QUERY_KEY = "events";
