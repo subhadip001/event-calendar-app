@@ -1,12 +1,23 @@
 "use client";
 
-import { useEvents } from "@/hooks/useEvents";
+import { Button } from "@/components/ui/button";
 import {
-  CreateEventInput,
-  Event as CalendarEvent,
-  EventTagEnum,
-} from "@/lib/types";
-import { getEventsForDay, getEventStyle, isMultiDayEvent } from "@/lib/utils";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useEventContext } from "@/contexts/EventContext";
+import { useEvents } from "@/hooks/useEvents";
+import { Event as CalendarEvent, EventTagEnum } from "@/lib/types";
+import {
+  cn,
+  getEventsForDay,
+  getEventStyle,
+  isMultiDayEvent,
+} from "@/lib/utils";
 import {
   addDays,
   addHours,
@@ -17,18 +28,16 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
-import React, { use, useEffect, useRef, useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useEventContext } from "@/contexts/EventContext";
+  ChevronLeft,
+  ChevronRight,
+  Clock4,
+  Clock7,
+  Edit2,
+  Tag,
+  Trash2,
+} from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 export function WeeklyCalendar() {
@@ -121,7 +130,7 @@ export function WeeklyCalendar() {
     null
   );
 
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // Start from Monday
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }); // I am staring it from sunday
   const weekDays = [...Array(7)].map((_, index) => addDays(weekStart, index));
 
   const hours = [...Array(24)].map((_, index) => index);
@@ -157,7 +166,6 @@ export function WeeklyCalendar() {
       setShowEventForm(false);
       setSelectedEvent(null);
       setTemporaryEvent(null);
-      toast.success("Event updated successfully");
     } else {
       const newEvent = {
         ...eventForm,
@@ -171,7 +179,6 @@ export function WeeklyCalendar() {
         tag: EventTagEnum.WORK,
       });
       setTemporaryEvent(null);
-      toast.success("Event created successfully");
     }
   };
 
@@ -264,7 +271,7 @@ export function WeeklyCalendar() {
       <div className="flex flex-1 overflow-hidden bg-white mb-5 rounded-2xl">
         <div className="flex-1 overflow-auto" ref={scrollContainerRef}>
           <div className="flex">
-            {/* Left bar for hours */}
+            {/* Left bar for showing hours */}
             <div className="w-16 flex-shrink-0 border-r">
               <div className="h-24"></div> {/* Header spacer */}
               {hours.map((hour) => (
@@ -341,7 +348,7 @@ export function WeeklyCalendar() {
                       }}
                     />
                   ))}
-                  {/* This is the current time line */}
+                  {/* This is the current time indicator line */}
                   {isSameDay(day, currentTime) && (
                     <div
                       className="absolute w-full flex items-center"
@@ -353,7 +360,7 @@ export function WeeklyCalendar() {
                       <div className="flex-1 h-[2px] bg-blue-500"></div>
                     </div>
                   )}
-                  {/* Events */}
+                  {/* Events cards are getting overlayed here over the grids */}
                   {[
                     ...getEventsForDay(day, viewingEvents),
                     ...(temporaryEvent &&
@@ -403,103 +410,148 @@ export function WeeklyCalendar() {
         </div>
       </div>
 
+      {/* This is dialog for creating/editing events */}
       <Dialog open={showEventForm} onOpenChange={handleDialogOpenChange}>
-        <DialogContent>
+        <DialogContent
+          style={{
+            borderRadius: "2rem",
+          }}
+          className="bg-[#F0F4F8]"
+        >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-normal capitalize text-gray-500">
               {selectedEvent ? "Edit Event" : "Add New Event"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmitEvent}>
             <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="name"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Event Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={eventForm.name}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="flex justify-end items-center w-full">
+                <div className="flex w-[90%] flex-col gap-2">
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Add title"
+                    value={eventForm.name}
+                    onChange={handleInputChange}
+                    required
+                    className="text-xl bg-transparent border-b-2 border-transparent transition-colors border-gray-400 focus:border-[#3b82f6] py-2 focus:outline-none"
+                  />
+                  <div>
+                    <div className="bg-blue-200 rounded-xl w-fit px-3 py-1 cursor-pointer">
+                      Event
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="start_datetime"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Start Date & Time
-                </label>
-                <input
-                  type="datetime-local"
-                  id="start_datetime"
-                  name="start_datetime"
-                  value={format(
-                    new Date(eventForm.start_datetime),
-                    "yyyy-MM-dd'T'HH:mm"
-                  )}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <Clock4 className="w-7 h-7 text-gray-500" />
+                  </div>
+                  <div className="w-full">
+                    <label
+                      htmlFor="start_datetime"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Start Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="start_datetime"
+                      name="start_datetime"
+                      value={format(
+                        new Date(eventForm.start_datetime),
+                        "yyyy-MM-dd'T'HH:mm"
+                      )}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="end_datetime"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  End Date & Time
-                </label>
-                <input
-                  type="datetime-local"
-                  id="end_datetime"
-                  name="end_datetime"
-                  value={format(
-                    new Date(eventForm.end_datetime),
-                    "yyyy-MM-dd'T'HH:mm"
-                  )}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <Clock7 className="w-7 h-7 text-gray-500" />
+                  </div>
+                  <div className="w-full">
+                    <label
+                      htmlFor="end_datetime"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      End Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="end_datetime"
+                      name="end_datetime"
+                      value={format(
+                        new Date(eventForm.end_datetime),
+                        "yyyy-MM-dd'T'HH:mm"
+                      )}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="tag"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Tag
-                </label>
-                <select
-                  id="tag"
-                  name="tag"
-                  value={eventForm.tag}
-                  onChange={handleInputChange}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="work">Work</option>
-                  <option value="meeting">Meeting</option>
-                  <option value="personal">Personal</option>
-                  <option value="important">Important</option>
-                  <option value="other">Other</option>
-                </select>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <Tag className="w-7 h-7 text-gray-500" />
+                  </div>
+                  <div className="w-full">
+                    <label
+                      htmlFor="tag"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Add tag
+                    </label>
+                    <select
+                      id="tag"
+                      name="tag"
+                      value={eventForm.tag}
+                      onChange={handleInputChange}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="work">Work</option>
+                      <option value="meeting">Meeting</option>
+                      <option value="personal">Personal</option>
+                      <option value="important">Important</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowEventForm(false)}
+                className="bg-transparent text-blue-500 hover:text-blue-500 hover:bg-blue-100 border-none shadow-none rounded-full"
+                onClick={() => {
+                  setEventForm({
+                    name: "",
+                    description: "",
+                    start_datetime: new Date().toISOString(),
+                    end_datetime: addHours(new Date(), 1).toISOString(),
+                    tag: EventTagEnum.WORK,
+                  });
+                  setSelectedEvent(null);
+                  setTemporaryEvent(null);
+                  setShowEventForm(false);
+                }}
               >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button
+                className="bg-transparent bg-blue-700 hover:bg-blue-600 hover:shadow-md text-white hover:text-white border-none shadow-none rounded-full"
+                type="submit"
+              >
                 {selectedEvent ? "Update" : "Create"} Event
               </Button>
             </DialogFooter>
@@ -507,6 +559,7 @@ export function WeeklyCalendar() {
         </DialogContent>
       </Dialog>
 
+      {/* This is dialog for viewing details of an event */}
       <Dialog
         open={openDialog}
         onOpenChange={(open) => {
@@ -514,7 +567,12 @@ export function WeeklyCalendar() {
           setSelectedEvent(null);
         }}
       >
-        <DialogContent>
+        <DialogContent
+          style={{
+            borderRadius: "2rem",
+          }}
+          className="bg-[#F0F4F8]"
+        >
           {!selectedUserId && (
             <div className="flex justify-end gap-3 mr-5">
               <div
@@ -532,32 +590,39 @@ export function WeeklyCalendar() {
             </div>
           )}
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold capitalize">
-              {selectedEvent?.name}
+            <DialogTitle className="text-xl flex gap-4 font-normal capitalize">
+              <div
+                className={cn(
+                  getEventColor(selectedEvent?.tag as string),
+                  "h-6 w-6 rounded-md"
+                )}
+              ></div>
+              <div className="flex flex-col">
+                <span>{selectedEvent?.name}</span>
+                <span className="text-sm text-gray-500">
+                  {selectedEvent &&
+                    `${format(
+                      new Date(selectedEvent.start_datetime),
+                      "MMM d, h:mm a"
+                    )} - ${format(
+                      new Date(selectedEvent.end_datetime),
+                      "MMM d, h:mm a"
+                    )}`}
+                </span>
+              </div>
             </DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <div className="space-y-2 mt-2">
-            <div>
-              <span className="font-medium">Time:</span>{" "}
-              {selectedEvent &&
-                `${format(
-                  new Date(selectedEvent.start_datetime),
-                  "MMM d, h:mm a"
-                )} - ${format(
-                  new Date(selectedEvent.end_datetime),
-                  "MMM d, h:mm a"
-                )}`}
+            <div className="capitalize">
+              <span className="font-medium">Tag:</span> {selectedEvent?.tag}
             </div>
-            <div>
-              <span className="font-medium">Type:</span> {selectedEvent?.tag}
-            </div>
-            {selectedEvent?.description && (
+            {/* {selectedEvent?.description && (
               <div>
                 <span className="font-medium">Description:</span>{" "}
                 {selectedEvent.description}
               </div>
-            )}
+            )} */}
           </div>
           <DialogFooter className="flex justify-end space-x-2"></DialogFooter>
         </DialogContent>

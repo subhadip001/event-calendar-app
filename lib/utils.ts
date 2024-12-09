@@ -1,18 +1,13 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 import {
-  format,
-  startOfWeek,
-  addDays,
-  addHours,
-  startOfDay,
-  endOfDay,
-  isSameDay,
   differenceInMinutes,
+  endOfDay,
   isAfter,
   isBefore,
-  parseISO,
+  isSameDay,
+  startOfDay
 } from "date-fns";
+import { twMerge } from "tailwind-merge";
 import { Event } from "./types";
 
 export function cn(...inputs: ClassValue[]) {

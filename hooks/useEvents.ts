@@ -58,6 +58,9 @@ export function useEvents() {
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
       toast.success("Event created successfully");
     },
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
   const updateEventMutation = useMutation({
@@ -84,6 +87,9 @@ export function useEvents() {
       toast.success("Event updated successfully");
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
     },
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
   const deleteEventMutation = useMutation({
@@ -98,6 +104,9 @@ export function useEvents() {
     onSuccess: () => {
       toast.success("Event deleted successfully");
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
