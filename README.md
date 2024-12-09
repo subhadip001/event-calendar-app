@@ -103,70 +103,108 @@
   - 401: Not authenticated
   - 404: User not found
 
-### Events API
+### Events (⁠ /events ⁠)
 
-#### 1. Create Event
+#### GET /events
 
-- **Endpoint:** `POST /api/events`
-- **Description:** Create a new event
-- **Request Body:**
-  ```typescript
-  {
-    title: string;
-    description?: string;
-    startDate: Date;
-    endDate?: Date;
-    location?: string;
-    userId: string;
-  }
-  ```
-- **Response:**
-  - 201: Event created successfully
-  - 400: Invalid input
-  - 401: Unauthorized
+Retrieves all events.
 
-#### 2. Get Events
+_Headers:_
+•⁠ ⁠Authorization: Bearer [token]
 
-- **Endpoint:** `GET /api/events`
-- **Description:** Retrieve events (supports filtering and pagination)
-- **Query Parameters:**
-  - `userId`: Filter events by user
-  - `startDate`: Filter events from a specific date
-  - `endDate`: Filter events up to a specific date
-  - `page`: Pagination page number
-  - `limit`: Number of events per page
+_Response:_
+⁠ json
+{
+"events": [
+{
+"id": "event-id",
+"title": "Event Title",
+"description": "Event Description",
+"date": "2024-12-09T21:47:12+05:30"
+}
+]
+}
+ ⁠
 
-#### 3. Get Single Event
+#### POST /events
 
-- **Endpoint:** `GET /api/events/:id`
-- **Description:** Retrieve a specific event by ID
-- **Response:**
-  - 200: Event details
-  - 404: Event not found
+Creates a new event.
 
-#### 4. Update Event
+_Headers:_
+•⁠ ⁠Authorization: Bearer [token]
 
-- **Endpoint:** `PUT /api/events/:id`
-- **Description:** Update an existing event
-- **Request Body:** Same as Create Event
-- **Response:**
-  - 200: Event updated successfully
-  - 400: Invalid input
-  - 401: Unauthorized
-  - 404: Event not found
+_Request Body:_
+⁠ json
+{
+"title": "Event Title",
+"description": "Event Description",
+"date": "2024-12-09T21:47:12+05:30"
+}
+ ⁠
 
-#### 5. Delete Event
+### User Events (⁠ /eventsByUserId ⁠)
 
-- **Endpoint:** `DELETE /api/events/:id`
-- **Description:** Delete a specific event
-- **Response:**
-  - 200: Event deleted successfully
-  - 401: Unauthorized
-  - 404: Event not found
+#### GET /eventsByUserId/{userId}
 
-## Authentication
+Retrieves events for a specific user.
 
-The API uses NextAuth for authentication. Ensure you have the proper authentication middleware in place when making requests.
+_Headers:_
+•⁠ ⁠Authorization: Bearer [token]
+
+_Response:_
+⁠ json
+{
+"events": [
+{
+"id": "event-id",
+"userId": "user-id",
+"title": "Event Title",
+"description": "Event Description",
+"date": "2024-12-09T21:47:12+05:30"
+}
+]
+}
+ ⁠
+
+### Users (⁠ /users ⁠)
+
+#### GET /users/{userId}
+
+Retrieves user information.
+
+_Headers:_
+•⁠ ⁠Authorization: Bearer [token]
+
+_Response:_
+⁠ json
+{
+"id": "user-id",
+"email": "user@example.com",
+"name": "John Doe"
+}
+ ⁠
+
+## Error Handling
+
+The API uses standard HTTP status codes for error responses:
+
+•⁠ ⁠200: Success
+•⁠ ⁠201: Created
+•⁠ ⁠400: Bad Request
+•⁠ ⁠401: Unauthorized
+•⁠ ⁠403: Forbidden
+•⁠ ⁠404: Not Found
+•⁠ ⁠500: Internal Server Error
+
+Error responses follow this format:
+⁠ json
+{
+"error": {
+"code": "ERROR_CODE",
+"message": "Error description"
+}
+}
+ ⁠
 
 ## Error Handling
 
@@ -174,18 +212,3 @@ The API uses NextAuth for authentication. Ensure you have the proper authenticat
 - 401: Unauthorized
 - 404: Resource Not Found
 - 500: Internal Server Error
-
-## Development Notes
-
-- Use TypeScript for type safety
-- Prisma ORM for database interactions
-- NextAuth for authentication
-- Validate and sanitize all input data
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
